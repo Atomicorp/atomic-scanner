@@ -1,0 +1,21 @@
+#!/bin/bash
+# Atomic Scanner statistics script
+
+export LANG="en_US.UTF-8"
+
+LOGDIR=/var/log/qscan/
+# TODO
+#TMPFILE=`/bin/mktemp -p /var/asl/tmp atomic-scanner.XXXXXXXXXX` || exit 1
+TMPFILE=/var/asl/tmp/atomic-scanner.log
+PHP=/usr/local/psa/admin/bin/php
+
+
+# Create the super-log
+zcat $LOGDIR/*archive.gz > $TMPFILE
+
+# Run through data-generator
+$PHP /var/asl/bin/data-generate.php
+
+# Remove the old file
+rm -f $TMPFILE
+

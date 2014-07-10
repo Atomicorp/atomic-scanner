@@ -1,0 +1,92 @@
+#!/usr/bin/perl
+
+# q-s output
+#   user@domain.com : scanner1,scanner2,scanner3'sa_subject'sa_quarantine'
+#                   sa_delta'sa_delete'sa_reject'sa_forward'sa_fwd_verbose'
+#                   sa_hdr_report'smaildir
+
+# ps = perlscanner
+# sa = spamassassin
+#
+
+use DBI;
+use Fcntl qw (:flock);
+my $lock_file = '/var/lock/atomic-scanner.lock';
+open LOCKFILE, "<$lock_file"  or open LOCKFILE, ">>$lock_file" or warn "Cannot open $lock_file";
+
+flock(LOCKFILE, LOCK_EX);
+
+# Read the atomic-scanner config for vars
+open (TORTIX_CONFIG, "< /etc/asl/atomic-scanner.conf");
+while (<TORTIX_CONFIG>) { 
+  #define("DB_NAME_AS","asl_ossec");
+  $line = $_;  
+  if ($line =~ /.*DB_NAME_AS.*/) {
+    my @vars=split(/define\(\"DB_NAME_AS\",\"(.*)\"/,$line);
+    $tortix_db = @vars[1];
+  }
+}
+
+# Read the PSA password
+open (PSA_PASSWD, "< /etc/psa/.psa.shadow" );
+while(<PSA_PASSWD>) {
+  $psa_passwd = $_;
+  chomp $psa_passwd; 
+}
+
+$dbh = DBI->connect("dbi:mysql:$tortix_db",'admin',$psa_passwd)
+or die "Connection Error: $DBI::errstr\n";
+$sql = "select id,type from tortix_scanner where stype = 'mail' order by type";
+$sth = $dbh->prepare($sql);
+$sth->execute
+or die "SQL Error: $DBI::errstr\n";
+
+
+%accounts = ();
+
+while (@row = $sth->fetchrow_array) {  
+  $dbh2 = DBI->connect('dbi:mysql:psa','admin',$psa_passwd) 
+  or die "Connection Error: $DBI::errstr\n";
+
+  $sql2 = "select mail.mail_name, domains.name from mail inner join domains  on mail.dom_id = domains.id where mail.id = $row[0]";
+  
+  $sth2 = $dbh2->prepare($sql2);
+  $sth2->execute;
+  while (@row2 = $sth2->fetchrow_array) {
+    #print "@row2[0]@@row2[1]: $row[1] \n";
+    $user = "@row2[0]@@row2[1]";
+  }
+
+  if (@row[1] =~ "antispam" ) {
+    $scanner="sa";
+  } elsif (@row[1] =~ "email_av" ) {
+    $scanner="clamdscan";
+  }
+
+
+  push( @{$accounts{$user}}, $scanner  );
+  
+} 
+
+# TODO:  merge in a local file
+
+# Write to config
+open CONFIG_FILE, "> /var/spool/qscan/settings_per_domain.txt";
+
+foreach $user (sort keys %accounts) {
+  #print "$user: @{$accounts{$user}}\n";
+  print CONFIG_FILE "$user:";
+  foreach $tty (sort @{$accounts{$user}}) {
+     print CONFIG_FILE "$tty,"; 
+  }
+  print CONFIG_FILE "\n";
+}
+close CONFIG_FILE;
+
+
+
+# Reload the db (this overwrites
+system ("/var/qmail/bin/qmail-scanner-queue.pl -p");
+
+flock(LOCKFILE, LOCK_UN);
+

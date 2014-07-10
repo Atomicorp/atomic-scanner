@@ -1,0 +1,281 @@
+<html>
+<head> 
+	<title>Atomic Scanner</title> 
+	<link rel="stylesheet" type="text/css" href="/skins/winxp.new/css/general.css">
+	<link rel="stylesheet" type="text/css" href="/skins/winxp.new/css/main/custom.css">
+	<link rel="stylesheet" type="text/css" href="/skins/winxp.new/css/main/layout.css">
+	<link rel="stylesheet" type="text/css" href="/skins/winxp.new/css/main/desktop.css">
+	<!--[if IE]><link rel="stylesheet" type="text/css" href="/skins/winxp.new/css/ie.css"><![endif]-->
+	<link rel="stylesheet" type="text/nonsense" href="/skins/winxp.new/css/misc.css">
+
+	<script language="javascript" type="text/javascript" src="/javascript/common.js?plesk_version=psa-8.1.1-81070322.16"></script>
+	<script language="javascript" type="text/javascript" src="/javascript/main.js?plesk_version=psa-8.1.1-81070322.16"></script>
+	<script language="javascript" type="text/javascript" src="/javascript/chk.js.php?plesk_version=psa-8.1.1-81070322.16"></script>
+</head>
+
+	<style type="text/css">
+		.as_visible {display:block;}
+		.as_hidden	{display:none;}
+		.asb_hide_search {
+			height:16px;
+			background:url('../skins/winxp.new/icons/search_hide.gif') 0 0 no-repeat;
+			text-decoration:underline;
+			padding-left:15px;
+			border:0;
+		}
+		.asb_show_search	{
+			height:16px;
+			background:url('../skins/winxp.new/icons/search_show.gif') 0 0 no-repeat;
+			text-decoration:underline;
+			padding-left:15px;
+			border:0;
+		}
+	</style>
+	
+<body id="mainCP" class="visibilityAdminMode MainFrameBody">
+	<div class="screenBody" id="">
+		<div class="toolsArea">
+			<fieldset>
+				<legend>Tools</legend>
+				<table width="100%" cellspacing="0" cellpadding="0" border="0">
+					<tr>
+						<td>
+							<div class="screenButtons">
+								<!---
+								<div class="commonButton" id="bid-preferences" title="Preferences" onClick="lon();go_to(&#039;/server/db_hosting_prefs.php?previous_page=db_servers&#039;); return false;"><button name="bname_preferences" id="buttonid-preferences" type="button">Preferences</button><span id="spanid-preferences">Preferences</span></div>
+								--->
+								<div class="commonButton" id="bid-summary-report" title="Summary Report" onClick="as_show_report(); return false;">
+									<button name="bname_summary_report" id="buttonid-summary-report" type="button">Summary Report</button>
+									<span id="spanid-summary-report">Summary Report</span>
+								</div>
+							</div>
+						</td>
+					</tr>
+				</table>
+			</fieldset>
+		</div>
+													
+		<div class="listArea">
+			<fieldset>
+				<legend>Domains</legend>
+				<table width="100%" cellspacing="0" cellpadding="0" border="0">
+					<tr>
+						<td>
+							<table width="100%" cellspacing="0" class="buttons">
+								<tr>
+									<td class="main"></td>
+									<td class="misc">
+										<div id="ClientsListSearchControl" class="show">
+											<div class="commonButton" id="bid-search-show" title="Show Search" onClick="as_search_show();;return false;">
+												<button name="bname_search_show" id="buttonid-search-show" type="button">Show Search</button>
+												<span id="spanid-search-show">Show Search</span>
+											</div>
+											<div class="commonButton" id="bid-search-hide" title="Hide Search" onClick="as_search_hide();;return false;">
+												<button name="bname_search_hide" id="buttonid-search-hide" type="button">Hide Search</button>
+												<span id="spanid-search-hide">Hide Search</span>
+											</div>
+										</div>
+									</td>
+								</tr>
+							</table>
+
+							<div id="ClientsListSearch" class="show">
+								<?echo "<form method='POST' action='index.php?domain=$domain&id=$id' id='as_search_form'>";?>
+								<table width="100%" cellspacing="0" class="buttons searchArea">
+									<tr>
+										<td class="main">
+											<div>
+												<input type="text" name="filter" id="searchInput" value="<?echo $search;?>" size="20" maxlength="245">
+												<input type="hidden" name="perpage" value="<?echo $perpage;?>">
+												<div class="commonButton" id="bid-search" title="Search" onClick="as_search();return false;">
+													<button name="bname_search" id="buttonid-search" type="submit">Search</button>
+													<span id="spanid-search">Search</span>
+												</div>
+												<div class="commonButton" id="bid-show-all" title="Show All" onClick="as_show_all();return false;">
+													<button name="bname_show_all" id="buttonid-show-all" type="button">Show All</button>
+													<span id="spanid-show-all">Show All</span>
+												</div>
+											</div>
+										</td>
+									</tr>
+								</table>
+								</form>
+							</div>
+			
+							<div class="paging"><input type="hidden" name="page" value ="0">
+								<input type="hidden" name="page_size" value ="999999">
+								<table width="100%">
+									<tr>
+										<td>
+											<? 
+												if ($stype=="domain") {echo count($data)." Clients total";}
+												else					{
+													echo count($data)." Mail Accounts total<br><br>".
+														"<a href='index.php?page=".$page."&perpage=".$perpage."'>Back to Domain List</a>";
+												}
+											?>
+										</td>
+										<td align="center">
+											<?
+												if ($pagecount>1) {
+													$out="Pages: ";
+													if ($page>2) {
+														$out.="<a href='index.php?domain=".$domain."&id=".$id."&page=1&perpage=".$perpage."'>First</a>&nbsp;";
+													}
+													if ($page>1) {
+														$out.="<a href='index.php?domain=".$domain."&id=".$id."&page=".($page-1)."&perpage=".$perpage."'>&lt;&lt;</a>&nbsp;";
+													}
+													for ($i=1;$i<=$pagecount;$i++) {
+														if ($i==$page) {$out.=$i."&nbsp;";}
+														else {
+															$out.="<a href='index.php?domain=".$domain."&id=".$id."&page=".$i."&perpage=".$perpage."'>".$i."</a>&nbsp;";
+														}
+													}
+													if ($page<$pagecount) {
+														$out.="<a href='index.php?domain=".$domain."&id=".$id."&page=".($page+1)."&perpage=".$perpage."'>&gt;&gt;</a>&nbsp;";
+													}
+													if ($page<($pagecount-1)) {
+														$out.="<a href='index.php?domain=".$domain."&id=".$id."&page=".$pagecount."&perpage=".$perpage."'>Last</a>&nbsp;";
+													}
+													echo $out;
+												}
+											?>
+										</td>
+										<td align="right">
+											Number of entries per page:&nbsp;
+											<?
+												$out="";
+												if ($perpage==10) 	{$out.="10&nbsp;";}
+												else				{$out.="<a href='#' onClick='as_set_pages(10); return false;;lon();'>10</a>&nbsp;";}
+												if ($perpage==25) 	{$out.="25&nbsp;";}
+												else				{$out.="<a href='#' onClick='as_set_pages(25); return false;;lon();'>25</a>&nbsp;";}
+												if ($perpage==100) 	{$out.="100&nbsp;";}
+												else				{$out.="<a href='#' onClick='as_set_pages(100); return false;;lon();'>100</a>&nbsp;";}
+												if ($perpage=="all"){$out.="All&nbsp;";}
+												else				{$out.="<a href='#' onClick='as_set_pages(\"all\"); return false;;lon();'>All</a>&nbsp;";}
+												echo $out;
+											?>
+										</td>
+									</tr>
+								</table>
+							</div>
+						</td>
+					</tr>
+				</table>
+			</fieldset>
+			
+			<?
+				/*
+				echo "<xmp>";
+				print_r($_POST);
+				print_r($_GET);
+				echo "</xmp>";
+				echo $debug;
+				*/
+			?>			
+		</div>
+			
+			<?
+				echo "<form method='POST' action='index.php?domain=$domain&id=$id'>";
+			?>
+				<table width=95% cellspacing="0">
+					<tr>
+						<td width=18% align=left><b>Domain Name</b></td>
+						<td width=18% align=right><b>Anti Spam</b><input type="checkbox" name="package_as[]" onClick="Checkall(this.form,'as');" ></td>
+						<td width=18% align=right><b>Email Anti Virus</b><input type="checkbox" name="package_eav[]" onClick="Checkall(this.form,'eav');" ></td>
+					</tr>
+					<?php
+						$color="white";
+						foreach ($data AS $k=>$v) {
+							if ($k>=$first && $k<=$last) {
+								if ( $color == "#ffffff") {$color="#eef0fc";} elseif ($color="#eef0fc") {$color="#ffffff";}
+								$out="<tr bgcolor='".$color."'>";
+								if ($domain=="") {
+									$out.="<td><a href='index.php?domain=".$v["name"]."&id=".$v["id"]."&page=".$page."&perpage=".$perpage."'>".$v["name"]."</a></td>";
+								}
+								else {
+									$out.="<td>".$v["name"]."</td>";
+								}
+								$out.="<td align='right'><input type='checkbox' name='package_as[]' value='".$v["id"]."'".$v["as_checked"]."></td>".
+										"<td align='right'><input type='checkbox' name='package_eav[]' value='".$v["id"]."'".$v["eav_checked"]."></td>".
+										"</tr>";
+									
+								echo $out;
+							}
+						}
+					?>
+					<tr>
+						<td colspan="3" align="center">
+							<input type="hidden" name="filter" value="<? echo $search;?>">
+							<input type="hidden" name="act" value="as_update">
+							<input type="submit" value="Update">
+						</td>
+					</tr>
+				</table>
+			</form>
+		</div>
+		<div class="LeftFrameSwitcher" id="divLeftFrameSwitcher"><img alt="bar_close.gif" width="6" height="60" id="imgLeftFrameSwitcher" onClick="SwitchLeftFrame();" title="Hide/show the navigation pane" src="/skins/winxp.new/images/bar_close.gif"></div>
+	</div>
+</body>
+	<script language="javascript">
+		function Checkall(form,type){ 
+			name="package_"+type+"[]";
+			for (var i = 1; i < form.elements.length; i++){    
+				if (form.elements[i].name==name) {
+					form.elements[i].checked=form.elements[name][0].checked;
+				}
+			} 
+		}
+		
+		function as_search_hide() {
+			var sc=document.getElementById("ClientsListSearchControl");
+			if (sc) {
+				removeClass(sc,"show");
+				addClass(sc,"hide");
+			}
+			
+			var s=document.getElementById("ClientsListSearch");
+			if (s) {
+				removeClass(s,"show");
+				addClass(s,"hide");
+			}
+			
+			document.cookie="cListShowSearch=0";
+		}
+		function as_search_show() {
+			var sc=document.getElementById("ClientsListSearchControl");
+			if (sc) {
+				removeClass(sc,"hide");
+				addClass(sc,"show");
+			}
+			
+			var s=document.getElementById("ClientsListSearch");
+			if (s) {
+				removeClass(s,"hide");
+				addClass(s,"show");
+			}
+			document.cookie="cListShowSearch=1";
+		}
+		
+		function as_search() {
+			f=document.forms["as_search_form"];
+			f.submit();
+		}
+		
+		function as_show_all(form) {
+			f=document.forms["as_search_form"];
+			f.elements["filter"].value="";
+			f.submit();
+		}
+		
+		function as_set_pages(x) {
+			f=document.forms["as_search_form"];
+			f.elements["perpage"].value=x;
+			f.submit();
+		}
+		
+		function as_show_report() {
+			self.location.href="reports.php";
+		}
+	</script>
+</html>
